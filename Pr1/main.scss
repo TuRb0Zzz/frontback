@@ -1,4 +1,4 @@
-$main-color: #333;
+$main-color: #333;  //Переменные цветов
 $price-color: #c1361b;
 
 
@@ -10,7 +10,7 @@ $price-color: #c1361b;
     border-radius: 6px;
 }
 
-.card {
+.card {  // Оформление классов
     width: 300px;
     border: 1px solid #ddd;
     padding: 16px;
@@ -36,6 +36,6 @@ $price-color: #c1361b;
     }
 
     &__btn {
-        @include btn-style($main-color);
+        @include btn-style($main-color); // вызов mixin c цветом $main-color
     }
 }
