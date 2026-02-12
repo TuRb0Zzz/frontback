@@ -1,0 +1,30 @@
+.card {
+  width: 300px;
+  border: 1px solid #ddd;
+  padding: 16px;
+  text-align: center;
+}
+.card__image {
+  width: 100%;
+}
+.card__title {
+  font-size: 20px;
+  color: #333;
+}
+.card__desc {
+  color: gray;
+}
+.card__price {
+  font-size: 22px;
+  color: #c1361b;
+  font-weight: bold;
+}
+.card__btn {
+  background: #333;
+  color: white;
+  padding: 8px 16px;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+/*# sourceMappingURL=style.css.map */

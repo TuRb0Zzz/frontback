@@ -1,0 +1,41 @@
+$main-color: #333;
+$price-color: #c1361b;
+
+
+@mixin btn-style($color) { //функция оформления кнопки по заданному цвету
+    background: $color;
+    color: white;
+    padding: 8px 16px;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.card {
+    width: 300px;
+    border: 1px solid #ddd;
+    padding: 16px;
+    text-align: center;
+
+    &__image {
+        width: 100%;
+    }
+
+    &__title {
+        font-size: 20px;
+        color: $main-color;
+    }
+
+    &__desc {
+        color: gray;
+    }
+
+    &__price {
+        font-size: 22px;
+        color: $price-color;
+        font-weight: bold;
+    }
+
+    &__btn {
+        @include btn-style($main-color);
+    }
+}
