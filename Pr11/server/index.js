@@ -18,7 +18,7 @@ const ACCESS_SECRET = "access_secret_key";
 const REFRESH_SECRET = "refresh_secret_key";
 
 
-const ACCESS_EXPIRES_IN = "15m";
+const ACCESS_EXPIRES_IN = "10s";
 const REFRESH_EXPIRES_IN = "7d";
 
 
