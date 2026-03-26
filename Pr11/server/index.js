@@ -12,6 +12,7 @@ app.use(cors({
   origin: 'http://localhost:3001',
   credentials: true
 }));
+app.use('/images', express.static('images'));
 
 
 const ACCESS_SECRET = "access_secret_key";
@@ -28,8 +29,9 @@ let products = [
     id: nanoid(6),
     title: "Цемент М500 50кг",
     category: "Стройматериалы",
-    description: "Портландцемент М500, высокая прочность",
+    description: "Портландцемент М500, высокая прочность, быстрое схватывание. Для фундаментных работ, кладки, стяжки.",
     price: 550,
+    image: "/images/1.jpg",
     createdBy: "system",
     createdAt: new Date().toISOString()
   },
@@ -37,17 +39,19 @@ let products = [
     id: nanoid(6),
     title: "Кирпич красный",
     category: "Стройматериалы",
-    description: "Кирпич керамический полнотелый М150",
+    description: "Кирпич керамический полнотелый М150, размер 250х120х65 мм. Морозостойкость F50.",
     price: 75,
+    image: "/images/2.jpg",
     createdBy: "system",
     createdAt: new Date().toISOString()
   },
   {
     id: nanoid(6),
-    title: "Перфоратор Makita",
+    title: "Перфоратор Makita HR2470",
     category: "Инструменты",
-    description: "Мощный перфоратор для профессиональных работ",
+    description: "Перфоратор 780Вт, патрон SDS-plus, энергия удара 2.7Дж, 3 режима работы.",
     price: 8990,
+    image: "/images/3.jpg",
     createdBy: "system",
     createdAt: new Date().toISOString()
   }
@@ -303,7 +307,7 @@ app.delete("/api/users/:id", authMiddleware, roleMiddleware([ROLES.ADMIN]), (req
 
 
 app.post("/api/products", authMiddleware, roleMiddleware([ROLES.SELLER, ROLES.ADMIN]), (req, res) => {
-  const { title, category, description, price } = req.body;
+  const { title, category, description, price, image } = req.body;
 
   if (!title || !category || !description || price === undefined) {
     return res.status(400).json({ error: "Все поля обязательны для заполнения" });
@@ -315,6 +319,7 @@ app.post("/api/products", authMiddleware, roleMiddleware([ROLES.SELLER, ROLES.AD
     category: category.trim(),
     description: description.trim(),
     price: Number(price),
+    image: image || "/images/1.jpg", 
     createdBy: req.user.sub,
     createdAt: new Date().toISOString()
   };
@@ -344,7 +349,7 @@ app.put("/api/products/:id", authMiddleware, roleMiddleware([ROLES.SELLER, ROLES
     return res.status(404).json({ error: "Товар не найден" });
   }
 
-  const { title, category, description, price } = req.body;
+  const { title, category, description, price, image } = req.body;
 
   if (!title || !category || !description || price === undefined) {
     return res.status(400).json({ error: "Все поля обязательны для заполнения" });
@@ -354,6 +359,7 @@ app.put("/api/products/:id", authMiddleware, roleMiddleware([ROLES.SELLER, ROLES
   product.category = category.trim();
   product.description = description.trim();
   product.price = Number(price);
+  if (image) product.image = image;
   product.updatedAt = new Date().toISOString();
 
   res.json(product);

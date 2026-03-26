@@ -7,6 +7,20 @@ export default function ProductCard({ product, onEdit, onDelete, canEdit, canDel
 
   return (
     <div className="product-card">
+      {/* Изображение товара */}
+      {product.image && (
+        <div className="product-image">
+          <img 
+            src={`http://localhost:3000${product.image}`} 
+            alt={product.title}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = 'http://localhost:3000/images/default.jpg';
+            }}
+          />
+        </div>
+      )}
+      
       <div className="product-category">
         {product.category}
       </div>

@@ -5,7 +5,8 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
     title: '',
     category: '',
     description: '',
-    price: ''
+    price: '',
+    image: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -18,14 +19,16 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
         title: initialProduct.title || '',
         category: initialProduct.category || '',
         description: initialProduct.description || '',
-        price: String(initialProduct.price || '')
+        price: String(initialProduct.price || ''),
+        image: initialProduct.image || ''
       });
     } else {
       setFormData({
         title: '',
         category: '',
         description: '',
-        price: ''
+        price: '',
+        image: ''
       });
     }
     setErrors({});
@@ -72,7 +75,8 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
       title: formData.title.trim(),
       category: formData.category.trim(),
       description: formData.description.trim(),
-      price: Number(formData.price)
+      price: Number(formData.price),
+      image: formData.image.trim() || `/images/${Math.floor(Math.random() * 3) + 1}.jpg` // случайное изображение по умолчанию
     });
   };
 
@@ -144,6 +148,21 @@ export default function ProductModal({ open, mode, initialProduct, onClose, onSu
               className={errors.price ? 'error' : ''}
             />
             {errors.price && <span className="error-message">{errors.price}</span>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="image">URL изображения</label>
+            <input
+              type="text"
+              id="image"
+              name="image"
+              value={formData.image}
+              onChange={handleChange}
+              placeholder="/images/1.jpg (оставьте пустым для случайного)"
+            />
+            <small style={{ color: '#666', display: 'block', marginTop: '5px' }}>
+              Доступные изображения: /images/1.jpg, /images/2.jpg, /images/3.jpg
+            </small>
           </div>
           
           <div className="modal-footer">
