@@ -1,7 +1,7 @@
 {
     "name": "Мои Заметки",
     "short_name": "Заметки",
-    "description": "Заметки",
+    "description": "Заметки с напоминаниями",
     "start_url": "/",
     "display": "standalone",
     "theme_color": "#ffffff",

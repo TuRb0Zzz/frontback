@@ -24,6 +24,17 @@ h1 {
     color: #111;
 }
 
+h2 {
+    font-size: 20px;
+    font-weight: 500;
+    margin: 24px 0 16px 0;
+    color: #111;
+}
+
+h2:first-of-type {
+    margin-top: 0;
+}
+
 .nav {
     display: flex;
     gap: 0;
@@ -50,14 +61,17 @@ h1 {
     color: #111;
 }
 
-form {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 32px;
+.form-group {
+    margin-bottom: 20px;
 }
 
-input {
-    flex: 1;
+.form-group input {
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+input, input[type="datetime-local"] {
+    width: 100%;
     padding: 12px 16px;
     font-size: 16px;
     border: 1px solid #e0e0e0;
@@ -85,23 +99,53 @@ button:hover {
     background: #f5f5f5;
 }
 
+.btn-primary {
+    background: #111;
+    color: white;
+    border: none;
+    width: 100%;
+}
+
+.btn-primary:hover {
+    background: #333;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+    border: none;
+    width: 100%;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
 #notes-list {
     list-style: none;
+    margin-top: 16px;
 }
 
 .note-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0;
-    border-bottom: 1px solid #f0f0f0;
+    padding: 16px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    margin-bottom: 12px;
 }
 
 .note-text {
     font-size: 16px;
     color: #111;
+    display: block;
+    margin-bottom: 8px;
     word-break: break-word;
-    flex: 1;
+}
+
+.note-reminder {
+    font-size: 13px;
+    color: #ff4444;
+    display: block;
+    margin-top: 4px;
 }
 
 .delete-btn {
@@ -109,27 +153,22 @@ button:hover {
     color: #ff4444;
     padding: 6px 12px;
     font-size: 14px;
-    margin-left: 12px;
-    border: none;
+    margin-top: 8px;
+    border: 1px solid #ff4444;
+    border-radius: 8px;
     cursor: pointer;
+    display: inline-block;
 }
 
 .delete-btn:hover {
-    background: none;
-    color: #ff4444;
+    background: #ff4444;
+    color: white;
 }
 
 .empty-message {
     text-align: center;
     color: #999;
     padding: 48px 0;
-}
-
-h2 {
-    font-size: 20px;
-    font-weight: 500;
-    margin-bottom: 20px;
-    color: #111;
 }
 
 .about-content p {
@@ -155,6 +194,7 @@ h2 {
     border: 1px solid #e0e0e0;
     padding: 10px 20px;
     font-size: 14px;
+    border-radius: 8px;
 }
 
 .push-btn:hover {

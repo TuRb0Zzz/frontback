@@ -1,7 +1,12 @@
 const socket = io('http://localhost:3001');
-
 const STORAGE_KEY = 'notes';
 const VAPID_PUBLIC_KEY = 'BJP0Sl52L3llJiO9cay13rL22fsKqVMctsphWZ7xTcyzZ52BVehW-fe5ewLdmIeiOX7ZtIQKUBy230tzw2m4tNo';
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -69,10 +74,20 @@ function showHome() {
     
     contentDiv.innerHTML = `
         <div class="home-content">
-            <form id="note-form">
+            <h2>Быстрая заметка</h2>
+            <form id="note-form" class="form-group">
                 <input type="text" id="note-input" placeholder="Введите заметку" required>
-                <button type="submit">Добавить</button>
+                <button type="submit" class="btn-primary">Добавить</button>
             </form>
+            
+            <h2>Заметка с напоминанием</h2>
+            <form id="reminder-form" class="form-group">
+                <input type="text" id="reminder-text" placeholder="Текст напоминания" required>
+                <input type="datetime-local" id="reminder-time" required>
+                <button type="submit" class="btn-success">Добавить с напоминанием</button>
+            </form>
+            
+            <h2>Список заметок</h2>
             <ul id="notes-list"></ul>
         </div>
     `;
@@ -86,7 +101,8 @@ function showAbout() {
     contentDiv.innerHTML = `
         <div class="about-content">
             <h2>О приложении</h2>
-            <p>Заметки с офлайн-доступом</p>
+            <p>Версия 2.0.0</p>
+            <p>Заметки с напоминаниями</p>
             <p>Создал: Николаев Е.А</p>
         </div>
     `;
@@ -110,71 +126,121 @@ function showNotification(message) {
     setTimeout(() => notification.remove(), 3000);
 }
 
+function renderNotesList() {
+    const list = document.getElementById('notes-list');
+    if (!list) return;
+    
+    const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    
+    if (notes.length === 0) {
+        list.innerHTML = '<div class="empty-message">Нет заметок</div>';
+        return;
+    }
+    
+    list.innerHTML = notes.map((note, index) => {
+        let reminderHtml = '';
+        if (note.reminder) {
+            const date = new Date(note.reminder);
+            reminderHtml = `<small class="note-reminder">Напоминание: ${date.toLocaleString()}</small>`;
+        }
+        return `
+            <li class="note-item" data-id="${note.id}">
+                <span class="note-text">${escapeHtml(note.text)}</span>
+                ${reminderHtml}
+                <button class="delete-btn" data-index="${index}">Удалить</button>
+            </li>
+        `;
+    }).join('');
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(btn.dataset.index);
+            const notesArr = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            notesArr.splice(index, 1);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(notesArr));
+            renderNotesList();
+        });
+    });
+}
+
 function initNotes() {
     const form = document.getElementById('note-form');
     const input = document.getElementById('note-input');
-    const list = document.getElementById('notes-list');
+    const reminderForm = document.getElementById('reminder-form');
+    const reminderText = document.getElementById('reminder-text');
+    const reminderTime = document.getElementById('reminder-time');
     
-    if (!form) return;
-    
-    function loadNotes() {
-        const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        
-        if (notes.length === 0) {
-            list.innerHTML = '<div class="empty-message">Нет заметок</div>';
-            return;
-        }
-        
-        list.innerHTML = notes.map((note, index) => `
-            <li class="note-item">
-                <span class="note-text">${escapeHtml(note)}</span>
-                <button class="delete-btn" data-index="${index}">Удалить</button>
-            </li>
-        `).join('');
-        
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(btn.dataset.index);
-                deleteNote(index);
-            });
-        });
-    }
+    let nextId = Date.now();
     
     function addNote(text) {
         if (!text.trim()) return;
         
         const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        notes.push(text.trim());
+        const newNote = {
+            id: nextId++,
+            text: text.trim(),
+            reminder: null
+        };
+        notes.push(newNote);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-        loadNotes();
+        renderNotesList();
         
         socket.emit('newTask', { text: text.trim(), timestamp: new Date().toISOString() });
     }
     
-    function deleteNote(index) {
+    function addReminder(text, reminderTimeMs) {
+        if (!text.trim()) return;
+        
         const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        notes.splice(index, 1);
+        const newNote = {
+            id: nextId++,
+            text: text.trim(),
+            reminder: reminderTimeMs
+        };
+        notes.push(newNote);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-        loadNotes();
+        renderNotesList();
+        
+        socket.emit('newReminder', {
+            id: newNote.id,
+            text: text.trim(),
+            reminderTime: reminderTimeMs
+        });
+        
+        showNotification(`Напоминание установлено на ${new Date(reminderTimeMs).toLocaleString()}`);
     }
     
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (text) {
+                addNote(text);
+                input.value = '';
+                input.focus();
+            }
+        });
     }
     
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const text = input.value.trim();
-        if (text) {
-            addNote(text);
-            input.value = '';
-            input.focus();
-        }
-    });
+    if (reminderForm) {
+        reminderForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const text = reminderText.value.trim();
+            const timeStr = reminderTime.value;
+            if (text && timeStr) {
+                const reminderTimeMs = new Date(timeStr).getTime();
+                if (reminderTimeMs > Date.now()) {
+                    addReminder(text, reminderTimeMs);
+                    reminderText.value = '';
+                    reminderTime.value = '';
+                } else {
+                    showNotification('Время напоминания должно быть в будущем');
+                }
+            }
+        });
+    }
     
-    loadNotes();
+    renderNotesList();
 }
 
 socket.on('taskAdded', (task) => {
@@ -182,38 +248,39 @@ socket.on('taskAdded', (task) => {
     showNotification(`Новая заметка: ${task.text}`);
     
     const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    const exists = notes.some(note => note === task.text);
+    const exists = notes.some(note => note.text === task.text);
     if (!exists && task.text) {
-        notes.push(task.text);
+        const newNote = {
+            id: Date.now(),
+            text: task.text,
+            reminder: null
+        };
+        notes.push(newNote);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-        if (document.getElementById('notes-list')) {
-            const list = document.getElementById('notes-list');
-            if (list) {
-                const currentNotes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                if (currentNotes.length === 0) {
-                    list.innerHTML = '<div class="empty-message">Нет заметок</div>';
-                } else {
-                    list.innerHTML = currentNotes.map((note, index) => `
-                        <li class="note-item">
-                            <span class="note-text">${escapeHtml(note)}</span>
-                            <button class="delete-btn" data-index="${index}">Удалить</button>
-                        </li>
-                    `).join('');
-                    
-                    document.querySelectorAll('.delete-btn').forEach(btn => {
-                        btn.addEventListener('click', (e) => {
-                            const idx = parseInt(btn.dataset.index);
-                            const notesArr = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                            notesArr.splice(idx, 1);
-                            localStorage.setItem(STORAGE_KEY, JSON.stringify(notesArr));
-                            location.reload();
-                        });
-                    });
-                }
-            }
-        }
+        renderNotesList();
     }
 });
+
+if (navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'SNOOZE_REMINDER') {
+            const { reminderId } = event.data;
+            
+            const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            const noteIndex = notes.findIndex(note => note.id === reminderId);
+            
+            if (noteIndex !== -1) {
+                const currentTime = notes[noteIndex].reminder;
+                const newTime = currentTime + (5 * 60 * 1000);
+                notes[noteIndex].reminder = newTime;
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+                
+                renderNotesList();
+                showNotification(`Напоминание отложено на 5 минут. Новое время: ${new Date(newTime).toLocaleString()}`);
+            }
+        }
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     const homeBtn = document.getElementById('home-btn');
@@ -265,14 +332,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
             .then(async (registration) => {
-                console.log('Service Worker registered');
+                console.log('Service Worker зарегистрирован');
                 const subscription = await registration.pushManager.getSubscription();
                 if (subscription && enableBtn && disableBtn) {
                     enableBtn.style.display = 'none';
                     disableBtn.style.display = 'inline-block';
                 }
             })
-            .catch((err) => console.error('SW registration failed:', err));
+            .catch((err) => console.error('Ошибка регистрации SW:', err));
     }
     
     showHome();

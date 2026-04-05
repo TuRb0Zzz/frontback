@@ -1,4 +1,4 @@
-const CACHE_NAME = 'app-shell-v3';
+const CACHE_NAME = 'app-shell-v4';
 const DYNAMIC_CACHE_NAME = 'dynamic-content-v1';
 
 const ASSETS = [
@@ -69,16 +69,48 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-    let data = { title: 'Новое уведомление', body: '' };
+    let data = { title: 'Новое уведомление', body: '', reminderId: null };
     if (event.data) {
         data = event.data.json();
     }
+    
     const options = {
         body: data.body,
         icon: '/images/icon-192.png',
-        badge: '/images/favicon.png'
+        badge: '/images/favicon.png',
+        data: { reminderId: data.reminderId }
     };
+    
+    if (data.reminderId) {
+        options.actions = [
+            { action: 'snooze', title: 'Отложить на 5 минут' }
+        ];
+    }
+    
     event.waitUntil(
         self.registration.showNotification(data.title, options)
     );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    const notification = event.notification;
+    const action = event.action;
+    const reminderId = notification.data.reminderId;
+    
+    if (action === 'snooze' && reminderId) {
+        event.waitUntil(
+            self.clients.matchAll({ type: 'window', includeUncontrolled: true })
+                .then(clients => {
+                    clients.forEach(client => {
+                        client.postMessage({
+                            type: 'SNOOZE_REMINDER',
+                            reminderId: reminderId
+                        });
+                    });
+                    notification.close();
+                })
+        );
+    } else {
+        notification.close();
+    }
 });
