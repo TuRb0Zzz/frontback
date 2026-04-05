@@ -200,3 +200,28 @@ button:hover {
 .push-btn:hover {
     background: #f5f5f5;
 }
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.checkbox-group input {
+    width: auto;
+    margin: 0;
+}
+
+.checkbox-group label {
+    margin: 0;
+    cursor: pointer;
+}
+
+#reminder-fields {
+    margin-bottom: 15px;
+}
+
+#reminder-fields input {
+    width: 100%;
+}

@@ -74,23 +74,36 @@ function showHome() {
     
     contentDiv.innerHTML = `
         <div class="home-content">
-            <h2>Быстрая заметка</h2>
+            <h2>Новая заметка</h2>
             <form id="note-form" class="form-group">
                 <input type="text" id="note-input" placeholder="Введите заметку" required>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="enable-reminder">
+                    <label for="enable-reminder">Установить напоминание</label>
+                </div>
+                
+                <div id="reminder-fields" style="display: none;">
+                    <input type="datetime-local" id="reminder-time">
+                </div>
+                
                 <button type="submit" class="btn-primary">Добавить</button>
-            </form>
-            
-            <h2>Заметка с напоминанием</h2>
-            <form id="reminder-form" class="form-group">
-                <input type="text" id="reminder-text" placeholder="Текст напоминания" required>
-                <input type="datetime-local" id="reminder-time" required>
-                <button type="submit" class="btn-success">Добавить с напоминанием</button>
             </form>
             
             <h2>Список заметок</h2>
             <ul id="notes-list"></ul>
         </div>
     `;
+    
+    const checkbox = document.getElementById('enable-reminder');
+    const reminderFields = document.getElementById('reminder-fields');
+    
+    if (checkbox && reminderFields) {
+        checkbox.addEventListener('change', (e) => {
+            reminderFields.style.display = e.target.checked ? 'block' : 'none';
+        });
+    }
+    
     initNotes();
 }
 
@@ -166,29 +179,12 @@ function renderNotesList() {
 function initNotes() {
     const form = document.getElementById('note-form');
     const input = document.getElementById('note-input');
-    const reminderForm = document.getElementById('reminder-form');
-    const reminderText = document.getElementById('reminder-text');
+    const checkbox = document.getElementById('enable-reminder');
     const reminderTime = document.getElementById('reminder-time');
     
     let nextId = Date.now();
     
-    function addNote(text) {
-        if (!text.trim()) return;
-        
-        const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-        const newNote = {
-            id: nextId++,
-            text: text.trim(),
-            reminder: null
-        };
-        notes.push(newNote);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-        renderNotesList();
-        
-        socket.emit('newTask', { text: text.trim(), timestamp: new Date().toISOString() });
-    }
-    
-    function addReminder(text, reminderTimeMs) {
+    function addNote(text, reminderTimeMs = null) {
         if (!text.trim()) return;
         
         const notes = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -201,41 +197,47 @@ function initNotes() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
         renderNotesList();
         
-        socket.emit('newReminder', {
-            id: newNote.id,
-            text: text.trim(),
-            reminderTime: reminderTimeMs
-        });
+        socket.emit('newTask', { text: text.trim(), timestamp: new Date().toISOString() });
         
-        showNotification(`Напоминание установлено на ${new Date(reminderTimeMs).toLocaleString()}`);
+        if (reminderTimeMs) {
+            socket.emit('newReminder', {
+                id: newNote.id,
+                text: text.trim(),
+                reminderTime: reminderTimeMs
+            });
+            showNotification(`Напоминание установлено на ${new Date(reminderTimeMs).toLocaleString()}`);
+        }
     }
     
     if (form) {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const text = input.value.trim();
+            
             if (text) {
-                addNote(text);
-                input.value = '';
-                input.focus();
-            }
-        });
-    }
-    
-    if (reminderForm) {
-        reminderForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const text = reminderText.value.trim();
-            const timeStr = reminderTime.value;
-            if (text && timeStr) {
-                const reminderTimeMs = new Date(timeStr).getTime();
-                if (reminderTimeMs > Date.now()) {
-                    addReminder(text, reminderTimeMs);
-                    reminderText.value = '';
-                    reminderTime.value = '';
-                } else {
-                    showNotification('Время напоминания должно быть в будущем');
+                let reminderTimeMs = null;
+                
+                if (checkbox && checkbox.checked) {
+                    const timeStr = reminderTime.value;
+                    if (timeStr) {
+                        reminderTimeMs = new Date(timeStr).getTime();
+                        if (reminderTimeMs <= Date.now()) {
+                            showNotification('Время напоминания должно быть в будущем');
+                            return;
+                        }
+                    } else {
+                        showNotification('Выберите время напоминания');
+                        return;
+                    }
                 }
+                
+                addNote(text, reminderTimeMs);
+                input.value = '';
+                if (checkbox) checkbox.checked = false;
+                if (reminderTime) reminderTime.value = '';
+                const reminderFields = document.getElementById('reminder-fields');
+                if (reminderFields) reminderFields.style.display = 'none';
+                input.focus();
             }
         });
     }
