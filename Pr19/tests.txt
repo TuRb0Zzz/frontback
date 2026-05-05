@@ -1,0 +1,9 @@
+curl -X POST http://localhost:3000/api/users -H "Content-Type: application/json" -d "{\"first_name\":\"Иван\",\"last_name\":\"Петров\",\"age\":30}"
+
+curl http://localhost:3000/api/users
+
+curl http://localhost:3000/api/users/1
+
+curl -X PATCH http://localhost:3000/api/users/1 -H "Content-Type: application/json" -d "{\"age\":31}"
+
+curl -X DELETE http://localhost:3000/api/users/1
