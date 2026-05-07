@@ -1,0 +1,9 @@
+curl -X POST http://localhost:3000/api/auth/register -H "Content-Type: application/json" -d "{\"username\":\"user1\",\"password\":\"pass123\",\"role\":\"user\"}"
+
+curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d "{\"username\":\"admin\",\"password\":\"admin\"}"
+
+curl -X POST http://localhost:3000/api/auth/login -H "Content-Type: application/json" -d "{\"username\":\"seller1\",\"password\":\"pass123\"}"
+
+curl -X GET http://localhost:3000/api/auth/me -H "Authorization: Bearer "
+
+curl -X GET http://localhost:3000/api/products -H "Authorization: Bearer "

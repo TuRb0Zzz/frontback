@@ -9,8 +9,8 @@ app.use(express.json());
 const PORT = 3000;
 
 
-const ACCESS_SECRET = "access_secret";
-const REFRESH_SECRET = "refresh_secret";
+const ACCESS_SECRET = "access_";
+const REFRESH_SECRET = "refresh_";
 const ACCESS_EXPIRES_IN = "15m";
 const REFRESH_EXPIRES_IN = "7d";
 

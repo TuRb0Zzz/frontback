@@ -1,7 +1,7 @@
 {
   "name": "redis-cache-practice",
   "version": "1.0.0",
-  "description": "Практика №21: кэширование с Redis",
+  "description": "Практика 21",
   "main": "app.js",
   "scripts": {
     "start": "node app.js"
