@@ -1,0 +1,2 @@
+import{t as e}from"./index-DKxLsWzb.js";var t=e();function n(){return(0,t.jsxs)(`div`,{children:[(0,t.jsx)(`h1`,{children:`О нас`}),(0,t.jsx)(`p`,{children:`lazy loading`})]})}export{n as default};
+//# sourceMappingURL=About-Boo9q9j6.js.map
